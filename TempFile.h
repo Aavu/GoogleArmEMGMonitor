@@ -85,39 +85,6 @@ public:
         return kNoError;
     }
 
-//    Error_t write(size_t iBlockLength) {
-//        if (!m_bInitialized || !m_pFileBuf)
-//            return kNotInitializedError;
-
-//        if (!m_pFile->isOpen())
-//            return kFileOpenError;
-
-//        if (!m_pFileBuf->isAvailable(iBlockLength))
-//            return kNotEnoughSamplesError;
-
-//        char data[100];
-//        std::string tmp = "";
-
-//        for (size_t i=0; i < iBlockLength; i++) {
-//            tmp = "";
-//            auto err = m_pFileBuf->pop(m_piData);
-//            if (err != kNoError)
-//                return err;
-//            for (size_t j=0; j < m_iTotalChannels; j++) {
-//                sprintf(data, "%i\t", m_piData[j]);
-//                tmp += data;
-//            }
-//            tmp += "\n";
-//            auto size = tmp.length()*sizeof(char);
-//            auto ret = m_pFile->write(tmp.c_str(), size);
-//            if (ret != (long)size)
-//                return kFileWriteError;
-//        }
-
-//        m_bNewDataInTemp = true;
-//        return kNoError;
-//    }
-
     Error_t startWriting() {
         if (!m_bInitialized || !m_pFileBuf)
             return kNotInitializedError;
@@ -149,6 +116,11 @@ public:
         m_pFileBuf = pBuf;
     }
 
+    void setCurrentSessionGesture(int iGesture) {
+        if (iGesture > 0)
+            m_iCurrentSessionGesture = iGesture;
+    }
+
 signals:
     void sig_nSamplesRecorded(qulonglong nSamples);
 
@@ -165,8 +137,10 @@ private:
                 return;
 
             for (size_t i=0; i < m_iBlockLength; i++) {
-                std::string tmp = "";
-                for (size_t j=0; j < m_iTotalChannels; j++) {
+                // Replace any non zero value with the current gesture
+                std::string tmp = (m_piData[(i*m_iTotalChannels)] != 0) ? std::to_string(m_iCurrentSessionGesture) + "\t" : "0\t";
+
+                for (size_t j=1; j < m_iTotalChannels; j++) {
                     sprintf(data, "%i\t", m_piData[(i*m_iTotalChannels) + j]);
                     tmp += data;
                 }
@@ -204,6 +178,8 @@ private:
 
     QThread* m_pWriteThread = nullptr;
     bool m_bRunning = false;
+
+    int m_iCurrentSessionGesture = -1;
 
     static inline qulonglong m_ulNSamplesRecorded = 0;
 };

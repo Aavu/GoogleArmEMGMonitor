@@ -886,6 +886,11 @@ void QCPPaintBufferGlFbo::draw(QCPPainter *painter) const
     qDebug() << Q_FUNC_INFO << "OpenGL frame buffer object doesn't exist, reallocateBuffer was not called?";
     return;
   }
+
+  // Edited by Raghavasimhan Sankaranarayanan
+  if (QOpenGLContext::currentContext() != mGlContext.toStrongRef())
+      mGlContext.toStrongRef()->makeCurrent(mGlContext.toStrongRef()->surface());
+
   painter->drawImage(0, 0, mGlFrameBuffer->toImage());
 }
 

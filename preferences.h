@@ -16,10 +16,14 @@ class Preferences : public QDialog
 
 public:
     struct pref_t {
+        QString host;
+        uint16_t iPort;
         uint16_t iBlockSize;
         uint16_t iSensorGain;
         QString defaultSavePath;
         uint16_t iRecordingLength;
+        QString serverPath;
+        QString annotationMapJSONFilePath;
     };
 
     explicit Preferences(pref_t* pPref = nullptr, QWidget *parent = nullptr);
@@ -35,6 +39,8 @@ public:
 
 private slots:
     void on_buttonBox_clicked(QAbstractButton *button);
+
+    void on_btn_annotationMapFilePath_clicked();
 
 private:
     Ui::Preferences *ui;

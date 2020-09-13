@@ -5,6 +5,7 @@
 #include <QKeyEvent>
 #include <iostream>
 #include <QMutex>
+#include <QMutexLocker>
 
 #include "tcpsocket.h"
 #include "RingBuffer.h"
@@ -30,13 +31,13 @@ public:
         uint16_t buffer[iBlockLength*iTotalChannels];
     };
 
-    explicit EMGDataSource(const std::string& host = "googlearm.local", size_t refresh_ms = 15, QObject *parent = nullptr);
+    explicit EMGDataSource(size_t refresh_ms = 15, QObject *parent = nullptr);
     ~EMGDataSource();
     void init(TempFile* pTempFile);
     void parseDate();
     RingBuffer<uint16_t>* getDataBufferPtr();   // Not a good practice. Dont give acces to private member variables outside the class
     RingBuffer<uint64_t>* getTimeBufferPtr();
-    Error_t sshStartServer();
+    Error_t sshStartServer(const std::string& host, uint16_t port);
     Error_t stop();
 
     void setRecording(bool bRec);
@@ -45,6 +46,8 @@ public:
 
     void startRecording();
     void stopRecording();
+
+    void setCurrentSessionGesture(int iGesture);
 
 signals:
     void getData(uint16_t* data);
@@ -57,13 +60,16 @@ private slots:
     void nSamplesRecorded(qulonglong nSamples);
 
 private:
+    Error_t initSocket(const QString& host, uint16_t port);
+
     SshSession* m_pSshSession = nullptr;
-    TCPSocket* m_pSocket;
+    TCPSocket* m_pSocket = nullptr;
     const uint16_t* m_pTcpData;
     uint16_t* m_pResidualData;
     uint16_t* m_pSendData;
     uint64_t* m_pTimeStamp;
-    std::string m_host;
+    QString m_host;
+    uint16_t m_iPort;
     size_t m_iRefreshTime; // Since frequency is 1KHz, time (ms) is the same as num samples
 
     qulonglong m_iNumSamplesRecorded = 0;
@@ -71,14 +77,13 @@ private:
     bool m_bRecording = false;
 
     TempFile* m_pTempFile = nullptr;
-    QTextStream* m_pOutStream = nullptr;
 
     RingBuffer<uint16_t>* m_pBuffer     = nullptr;
     RingBuffer<uint64_t>* m_pTimeBuffer = nullptr;
     RingBuffer<uint16_t>* m_pFileBuffer = nullptr;
 
     // preferences
-    uint16_t m_iSensorGain = 2;
+    uint16_t m_iSensorGain = 8;
 
     QMutex m_mtx;
 };

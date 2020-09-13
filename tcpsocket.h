@@ -16,12 +16,15 @@ public:
     };
 
     explicit TCPSocket(QObject *parent = nullptr);
+    ~TCPSocket();
 
-    void doConnect();
+    void doConnect(const QString& host, uint16_t port);
 
     Error_t send(const char* pMsg, qint64 size);
     Error_t send(uint16_t iGain);
     Error_t send(Message controlMsg);
+
+    Error_t doDisconnect();
 
 signals:
     void dataAvailable(QByteArray data);

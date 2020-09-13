@@ -5,7 +5,12 @@ TCPSocket::TCPSocket(QObject *parent) : QObject(parent)
 
 }
 
-void TCPSocket::doConnect() {
+TCPSocket::~TCPSocket() {
+    doDisconnect();
+    delete m_pSocket;
+}
+
+void TCPSocket::doConnect(const QString& host, uint16_t port) {
     m_pSocket = new QTcpSocket(this);
 
     connect(m_pSocket, SIGNAL(connected()),this, SLOT(connected()));
@@ -16,13 +21,22 @@ void TCPSocket::doConnect() {
     qDebug() << "connecting...";
 
     // this is not blocking call
-    m_pSocket->connectToHost("googlearm.local", 8080); // 192.168.0.250   // 192.168.0.164
+    m_pSocket->connectToHost(host, port); // 192.168.0.250   // 192.168.0.164
 
     // we need to wait...
     if(!m_pSocket->waitForConnected(5000))
     {
         qDebug() << "Error: " << m_pSocket->errorString();
     }
+}
+
+Error_t TCPSocket::doDisconnect() {
+    if (m_pSocket->state() != QAbstractSocket::ConnectedState) {
+        return kFileCloseError;
+    }
+
+    m_pSocket->disconnectFromHost();
+    return kNoError;
 }
 
 void TCPSocket::connected()
