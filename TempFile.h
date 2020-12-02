@@ -12,17 +12,31 @@
 #include "RingBuffer.h"
 #include "ErrorDef.h"
 
+/**
+ * @brief The TempFile class is rresponsible for handling the temp files that are used for recording EMG data
+ */
 class TempFile: public QObject
 {
     Q_OBJECT
 public:
-    TempFile() {
-    }
+    /**
+     * @brief TempFile Constructor
+     */
+    TempFile() {}
 
+    /**
+     * @brief TempFile Destructor
+     */
     ~TempFile() {
         destroy();
     }
 
+    /**
+     * @brief create a tempfile
+     * @param iBlockLength : The block size
+     * @param iTotalChannels : Number of channels
+     * @return Error_t
+     */
     Error_t create(size_t iBlockLength = 128, size_t iTotalChannels = 10) {
         m_iBlockLength = iBlockLength;
         m_iTotalChannels = iTotalChannels;
@@ -41,6 +55,9 @@ public:
         return kNoError;
     }
 
+    /**
+     * @brief destroy the tempfile if any
+     */
     void destroy() {
         delete m_pFile;
         m_pFile = nullptr;
@@ -48,6 +65,12 @@ public:
         m_bInitialized = false;
     }
 
+    /**
+     * @brief copy the contents of the temp file to an actual File
+     * @param filename : Path of the actual file
+     * @param shouldDeleteTemp : Whether to delete temp or not
+     * @return Error_t
+     */
     Error_t copyToFile(const QString& filename, bool shouldDeleteTemp=true) {
         if (!QFile::copy(m_pFile->fileName(), filename))
             return kFileWriteError;
@@ -59,6 +82,13 @@ public:
         return kNoError;
     }
 
+    /**
+     * @brief write data to temp file
+     * @param piData : pointer to the data buffer
+     * @param iBlockLength : the blocksize
+     * @param iChannels : number of channels
+     * @return Error_t
+     */
     Error_t write(uint16_t* piData, size_t iBlockLength, size_t iChannels) {
         if (!m_bInitialized)
             return kNotInitializedError;
@@ -85,6 +115,10 @@ public:
         return kNoError;
     }
 
+    /**
+     * @brief start Writing to file in a seperate thread
+     * @return Error_t
+     */
     Error_t startWriting() {
         if (!m_bInitialized || !m_pFileBuf)
             return kNotInitializedError;
@@ -100,21 +134,24 @@ public:
         return kNoError;
     }
 
+    /**
+     * @brief stop Writing file
+     * @return Error_t
+     */
     Error_t stopWriting() {
         m_bRunning = false;
-        while(!m_pWriteThread->isFinished());
+        while(m_pWriteThread->isRunning());
         m_ulNSamplesRecorded = 0;
         return kNoError;
     }
 
 
+    //Getters and setters
     bool isInitialized() { return m_bInitialized; }
     QString getFilename() { return m_filename; }
     bool hasUnSavedData() { return m_bNewDataInTemp; }
 
-    void setFileBuffer(RingBuffer<uint16_t>* pBuf) {
-        m_pFileBuf = pBuf;
-    }
+    void setFileBuffer(RingBuffer<uint16_t>* pBuf) { m_pFileBuf = pBuf;}
 
     void setCurrentSessionGesture(int iGesture) {
         if (iGesture > 0)
@@ -122,9 +159,16 @@ public:
     }
 
 signals:
+    /**
+     * @brief signal for number of Samples Recorded
+     * @param nSamples
+     */
     void sig_nSamplesRecorded(qulonglong nSamples);
 
 private:
+    /**
+     * @brief The callback for writing thread. It is called when startWriting is called and stopped when stopWriting is called
+     */
     void writeThreadHandler() {
         while(m_bRunning) {
             if (!m_pFileBuf->isAvailable(m_iBlockLength))
@@ -153,12 +197,6 @@ private:
 
             m_ulNSamplesRecorded += m_iBlockLength;
             sig_nSamplesRecorded(m_ulNSamplesRecorded);
-//            qDebug() << m_ulNSamplesRecorded;
-
-//            if (++m_ulNSamplesRecorded % m_iBlockLength == 0) {
-//                sig_nSamplesRecorded(m_ulNSamplesRecorded);
-//                qDebug() << m_ulNSamplesRecorded;
-//            }
 
             m_bNewDataInTemp = true;
         }
@@ -177,7 +215,7 @@ private:
     bool m_bNewDataInTemp = false;
 
     QThread* m_pWriteThread = nullptr;
-    bool m_bRunning = false;
+    std::atomic<bool> m_bRunning = false;
 
     int m_iCurrentSessionGesture = -1;
 

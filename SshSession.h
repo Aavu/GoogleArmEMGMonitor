@@ -8,6 +8,9 @@
 #include <QDebug>
 #include "ErrorDef.h"
 
+/**
+ * @brief The Ssh Session class takes care of starting the server script on the Arm
+ */
 class SshSession : public QObject {
     Q_OBJECT
 public:
@@ -19,19 +22,30 @@ public:
         delete m_pSession;
     }
 
+    /**
+     * @brief try Connecting to the arm
+     * @param host : hostname
+     * @param user : username
+     * @param password : password
+     * @return Error_t
+     */
     Error_t doConnect(const std::string& host = "googlearm.local", const std::string& user = "pi", const std::string& password = "raspberry") {
         try {
-                m_pSession->setOption(SSH_OPTIONS_HOST, host.c_str());
-                m_pSession->setOption(SSH_OPTIONS_USER, user.c_str());
-                m_pSession->connect();
-                m_pSession->userauthPassword(password.c_str());
-            } catch (const std::exception& e) {
-                qDebug() << "Connect failed. " << e.what();
-                return kUnknownError;
-            }
+            m_pSession->setOption(SSH_OPTIONS_HOST, host.c_str());
+            m_pSession->setOption(SSH_OPTIONS_USER, user.c_str());
+            m_pSession->connect();
+            m_pSession->userauthPassword(password.c_str());
+        } catch (const std::exception& e) {
+            qDebug() << "Connect failed. " << e.what();
+            return kUnknownError;
+        }
         return kNoError;
     }
 
+    /**
+     * @brief disconnect from the arm
+     * @return Error_t
+     */
     Error_t disconnect() {
         try {
             m_pSession->disconnect();
@@ -42,8 +56,12 @@ public:
         return kNoError;
     }
 
+    /**
+     * @brief start the Server script
+     * @return Error_t
+     */
     Error_t startServer() {
-        // Kill the app or the server if already running.
+        // Kill the app or the server if already running and then start the server.
         ssh::Channel channel(*m_pSession);
         char buffer[512];
         int nbytes;

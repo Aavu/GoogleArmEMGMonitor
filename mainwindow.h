@@ -23,6 +23,9 @@ QT_END_NAMESPACE
 
 #define APP_NAME "Google Arm EMG Monitor"
 
+/**
+ * @brief The Main Window class to display on screen
+ */
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -33,44 +36,127 @@ public:
         YAxis
     };
 
+    /**
+     * @brief Main Window constructor
+     * @param parent : Parent widget if any
+     */
     MainWindow(QWidget *parent = nullptr);
+
     ~MainWindow();
 
 private slots:
+
+    /**
+     * @brief Slot to update Status Bar Message
+     * @param message : the msg string
+     */
     void updateStatusBarMessage(QString message);
+
+    /**
+     * @brief slot to update the Plots
+     */
     void updatePlots();
+
+    /**
+     * @brief slot for number of Samples Recorded
+     * @param nSamplesRecorded : How many
+     */
     void nSamplesRecorded(qulonglong nSamplesRecorded);
 
+    /**
+     * @brief callback when recordBtn is clicked
+     */
     void on_recordBtn_clicked();
+
+    /**
+     * @brief callback when actionAmplitude is triggered
+     * @param checked : Whether checked or not
+     */
     void on_actionAmplitude_triggered(bool checked);
+
+    /**
+     * @brief callback when connectBtn is clicked
+     */
     void on_connectBtn_clicked();
 
+    /**
+     * @brief callback when Save_As is triggered
+     */
     void on_actionSave_As_triggered();
 
+    /**
+     * @brief callback when Preferences is triggered
+     */
     void on_actionPreferences_triggered(bool);
 
+    /**
+     * @brief callback when Save is triggered
+     */
     void on_actionSave_triggered();
 
+    /**
+     * @brief slot for current Index Changed
+     * @param index : The index
+     */
     void currentIndexChanged(int index);
 
+    /**
+     * @brief callback when Time is triggered
+     * @param checked : Whether it is checked
+     */
     void on_actionTime_triggered(bool checked);
 
 private:
+    /**
+     * @brief Initialize the Axes
+     */
     void initAxes();
+
+    /**
+     * @brief Initialize Graphs
+     */
     void initGraphs();
+
+    /**
+     * @brief Toggle Axis Visibilty
+     * @param axis : The axis to affect
+     * @param show : Whether to show or hide
+     */
     void toggleAxisVisibilty(Axis axis, bool show);
+
+    /**
+     * @brief Connect Y Axes Range
+     */
     void connectYAxesRange();
+
+    /**
+     * @brief Clear Graphs
+     * @param idx : the index to clear
+     */
     void clearGraphs(int idx);
 
+    /**
+     * @brief Close Event
+     * @param event : Pointer to the event details
+     */
     void closeEvent (QCloseEvent *event);
 
+    /**
+     * @brief set Recording to enable or disable
+     * @param record : booleon to set
+     */
     void setRecording(bool record);
 
-    void displayFPS(double etime);
-
-    // Combo Box
+    /**
+     * @brief Update Combo Box
+     * @param init : Whether to initialize of not
+     */
     void updateComboBox(bool init = false);
-    //JSON
+
+    /**
+     * @brief parse the Annotation Map JSON file
+     * @return Error_t
+     */
     Error_t parseAnnotationMap();
 
     Ui::MainWindow *ui;

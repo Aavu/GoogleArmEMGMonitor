@@ -37,11 +37,11 @@ Preferences::~Preferences() {
     delete ui;
 }
 
-Preferences::pref_t Preferences::getPref() {
+Preferences::pref_t& Preferences::getPref() {
     return m_pref;
 }
 
-void Preferences::setPref(pref_t pref) {
+void Preferences::setPref(const pref_t& pref) {
     m_pref = pref;
 }
 

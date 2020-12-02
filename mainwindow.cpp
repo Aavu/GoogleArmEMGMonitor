@@ -139,10 +139,7 @@ void MainWindow::updatePlots() {
         for(int j=0; j<m_iNumEMGChannels; j++) {
             float point = (m_pData[(i*m_iTotalChannels) + (j + 1)] - (1 << 15)) / (float)(1 << 15);
             m_graph[j]->addData(key, point);
-//            std::cout << m_pData[(i*m_iTotalChannels) + j]  << "\t";
-//            m_graph[j]->addData(key, qSin(key)+qrand()/(double)RAND_MAX*1*qSin(key/0.3843));
         }
-//        std::cout << std::endl;
     }
 
     m_xAxes[m_iParentAxisID]->setRange(key, m_iTimeSize, Qt::AlignRight);
@@ -176,29 +173,6 @@ void MainWindow::setRecording(bool record) {
     ui->recordBtn->setText(record ? "Stop" : "Record");
     ui->recordBtn->setChecked(record);
     ui->cb_gestureName->setEnabled(!record);
-}
-
-void MainWindow::displayFPS(double etime) {
-    static double lastFpsKey;
-    static int frameCount;
-    ++frameCount;
-
-    auto totalDP = 0;
-
-    for (int i=0; i<m_iNumEMGChannels; i++) {
-        totalDP += m_graph[i]->data().data()->size();
-    }
-
-    if (etime-lastFpsKey > 2) // average fps over 2 seconds
-    {
-      ui->statusBar->showMessage(
-            QString("%1 FPS, Total Data points: %2")
-            .arg(frameCount/(etime-lastFpsKey), 0, 'f', 0)
-            .arg(totalDP)
-            , 0);
-      lastFpsKey = etime;
-      frameCount = 0;
-    }
 }
 
 void MainWindow::updateStatusBarMessage(QString message) {

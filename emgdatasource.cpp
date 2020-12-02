@@ -127,10 +127,6 @@ RingBuffer<uint16_t>* EMGDataSource::getDataBufferPtr() {
     return m_pBuffer;
 }
 
-RingBuffer<uint64_t>* EMGDataSource::getTimeBufferPtr() {
-    return m_pTimeBuffer;
-}
-
 Error_t EMGDataSource::sshStartServer(const std::string& host, uint16_t port) {
     auto err = kNoError;
 

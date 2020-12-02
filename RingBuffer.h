@@ -9,6 +9,9 @@
 
 #include "ErrorDef.h"
 
+/**
+ * @brief The Ringbuffer class handles all the buffers used in the app.
+ */
 template<class T>
 class RingBuffer {
 public:
@@ -46,8 +49,18 @@ public:
         delete [] m_ptBuffer;
     }
 
+    /**
+     * @brief set the Overflow Mode
+     * @param mode
+     */
     void setOverflowMode(OverflowMode_t mode) { m_mode = mode; }
 
+    /**
+     * @brief push a set of samples to the buffer
+     * @param pVal : the array pointer to samples
+     * @param iNumSamples : Number of samples
+     * @return Error_t
+     */
     Error_t push(const T* pVal, size_t iNumSamples = 1) {
         std::lock_guard<std::mutex> lock(m_mtx);
 
@@ -81,6 +94,13 @@ public:
         return kNoError;
     }
 
+    /**
+     * @brief pop a set of values from the buffer
+     * @param pVal : Pointer to the array
+     * @param iNumSamples : number of samples
+     * @param bUpdateIdx : Whether to update the read index
+     * @return Error_t
+     */
     Error_t pop(T* pVal, size_t iNumSamples = 1, bool bUpdateIdx = true) {
         std::lock_guard<std::mutex> lock(m_mtx);
         if (m_bufferState == Empty) {
@@ -100,10 +120,13 @@ public:
         if (bUpdateIdx)
             incIdx(m_iReadIdx, Read, m_iHopLength);
 
-    //    print();
         return kNoError;
     }
 
+    /**
+     * @brief reset all the values and parameters of the buffer
+     * @param setZero : Whether to reset all the values of the buffer
+     */
     void reset(bool setZero = true) {
         if (setZero)
             memset(m_ptBuffer, 0, sizeof(T) * m_iCapacity);
@@ -112,12 +135,18 @@ public:
         m_iWriteIdx = 0;
     }
 
+    /**
+     * @brief whether the number of samples are Available in the buffer
+     * @param iNumSamples : Number of samples to request
+     * @return Whether samples are available or not
+     */
     bool isAvailable(size_t iNumSamples = 1) {
         if (m_bufferState == Empty)
             return false;
         return ((int)(iNumSamples*m_iChannels)) <= m_iLength;
     }
 
+    // Getters for the parameters
     size_t getWriteIdx() { return m_iWriteIdx; }
     size_t getReadIdx() { return m_iReadIdx; }
     size_t getLength() { return m_iLength; }
@@ -141,10 +170,22 @@ private:
     State_t m_bufferState = Empty;
     OverflowMode_t m_mode = Replace;
 
+    /**
+     * @brief copy buffer
+     * @param pDst : pointer to destination
+     * @param pSrc : pointer to source
+     * @param iNumSamples : Number of samples to copy
+     */
     void copy(T* pDst, const T* pSrc, size_t iNumSamples = 1) {
         memcpy(pDst, pSrc, sizeof(T) * iNumSamples * m_iChannels);
     }
 
+    /**
+     * @brief increment the Index
+     * @param riIdx : reference the index
+     * @param type : Type of the index (Read | Write)
+     * @param iOffset : How much to increment
+     */
     void incIdx(int& riIdx, Index_t type = Read, int iOffset = 1) {
         iOffset *= m_iChannels;
         while ((riIdx + iOffset) < 0) {
@@ -155,6 +196,10 @@ private:
         incLength(type*iOffset);
     }
 
+    /**
+     * @brief update the Length of the buffer
+     * @param iBy : how much to increase
+     */
     void incLength(int iBy = 1) {
         m_iLength = std::min(std::max(0, (m_iLength + iBy)), m_iCapacity);
         if (m_iLength == 0) {
