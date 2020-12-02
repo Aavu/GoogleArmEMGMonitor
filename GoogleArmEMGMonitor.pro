@@ -51,3 +51,6 @@ macx: LIBS += -L/usr/local/lib/ -lssh
 
 INCLUDEPATH += /usr/local/include
 DEPENDPATH += /usr/local/include
+
+DISTFILES += \
+    README.md
